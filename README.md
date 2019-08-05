@@ -2,7 +2,18 @@
 
 ## <a name="about">About</a>
 
-This is a Ansible playbook which configures my notebook / VM.
+This is a Ansible playbook which configures my Ubuntu notebook / VM.
+
+It will do things like:
+
+* Install and configure Docker
+* Install a bunch of software (like Spotify, VS Code, GitKraken, etc.)
+* Configure the favbar
+* Configure the autostart tools
+* Install and set the adapta-gtk-theme
+* Checkout my favorite GitHub repos
+
+For more details, have a look at the roles/ directory.
 
 ## <a name="use">How to use it</a>
 
@@ -59,7 +70,8 @@ or
 
 to execute the playbook on your inventory.
 
-## <a name="todo">TODO's</a>
-- [x] Enable dash favorite bar (Nautilus, Firefox, Spotify, VS Code, GitKraken, terminator, Putty, Screenshot, Snappr, VirtualBox)
-- [ ] For virtualbox, use third-party repo instead of default repo as the one from Ubuntu repo is very old
+Log files can be found under the logs/ directory.
 
+## <a name="todo">TODO's</a>
+- [ ] Add playonlinux / Steam setup
+- [ ] Add wallpaper & lock screen setup (in theme role)
