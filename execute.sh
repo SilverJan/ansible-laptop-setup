@@ -31,8 +31,8 @@ Usage:
 execute.sh [OPTIONS]
 
 Options:
-  -s SKIP_TAGS  : skip certain tags (e.g. sky,spotify)
-  -r SKIP_ROLES : skip certain roles (e.g. proxy)
+  -s SKIP_TAGS  : skip certain tags (e.g. spotify)
+  -r SKIP_ROLES : skip certain roles (e.g. theme)
   -h            : print this help
 "
 }
