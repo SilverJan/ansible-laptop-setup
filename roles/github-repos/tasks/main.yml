@@ -1,0 +1,11 @@
+---
+- name: Checkout GitHub repos into ~/dev/
+  git:
+    repo: 'https://{{ github_user | urlencode }}:{{ github_pw | urlencode }}@github.com/SilverJan/{{ item }}.git'
+    dest: /home/{{ setup_user }}/dev/{{ item }}
+    version: master
+    update: no
+  when: github_user != "" and github_pw != ""
+  with_items:
+    - temperature-sensor
+  become_user: "{{ setup_user }}"

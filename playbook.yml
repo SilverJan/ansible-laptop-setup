@@ -1,0 +1,29 @@
+---
+# Base playbook for a laptop setup
+
+- hosts: all
+  user: root
+  roles:
+    - role: sysinfo
+    - role: software
+    - role: docker
+    - role: user-autostart
+    - { role: favbar, when: ansible_distribution_version == "18.04" }
+    - { role: theme, when: ansible_distribution_version == "18.04" }
+    - role: github-repos
+  vars_prompt: 
+    - name: "github_user" 
+      prompt: "Enter your GitHub username (ignore if no need to clone)" 
+      private: no 
+    - name: "github_pw" 
+      prompt: "Enter your GitHub password (ignore if no need to clone)" 
+      private: yes 
+  vars_files:
+    - setup_user_vars.yml
+
+# Theoretically, can call tasks directly in playbook and call via `sudo ansible-playbook playbook.yml -f 10`
+#  tasks:
+#    - name: list .desktop files in ~/.config/autostart
+#      shell: ls -al ~/.config/autostart
+
+# More examples: https://github.com/plone/ansible-playbook/blob/master/playbook.yml

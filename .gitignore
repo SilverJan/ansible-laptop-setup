@@ -1,0 +1,3 @@
+*.retry
+setup_user_vars.yml
+log/

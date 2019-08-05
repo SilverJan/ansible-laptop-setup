@@ -1,0 +1,44 @@
+- name: create /home/{{ setup_user }}/ directories
+  file: 
+    path: "/home/{{ setup_user }}/.config/autostart/"
+    state: directory
+    recurse: yes
+
+- name: create /home/{{ setup_user }}/ directories
+  file: 
+    path: "/home/{{ setup_user }}/scripts/"
+    state: directory
+    recurse: yes
+
+- name: copy startup.sh to /home/{{ setup_user }}/scripts/startup.sh
+  copy:
+    src: startup.sh
+    dest: /home/{{ setup_user }}/scripts/startup.sh
+    owner: "{{ setup_user }}"
+    group: "{{ setup_user }}"
+    mode: 0777
+
+- name: copy startup-cron to /etc/cron.d/startup-cron
+  copy:
+    src: startup-cron
+    dest: /etc/cron.d/startup-cron
+    owner: root
+    group: root
+    mode: 0777
+
+- name: copy .desktop files into ~/.config/autostart/
+  copy:
+    src: "{{ item }}"
+    dest: /home/{{ setup_user }}/.config/autostart/
+    owner: "{{ setup_user }}"
+    group: "{{ setup_user }}"
+    mode: 0777
+  with_fileglob:
+    - "{{ role_path }}/files/autostart/*.desktop"
+
+- name: list .desktop files in ~/.config/autostart
+  shell: ls -al /home/{{ setup_user }}/.config/autostart/
+  register: shell_result
+
+- debug:
+    var: shell_result.stdout_lines

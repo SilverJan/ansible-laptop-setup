@@ -1,0 +1,237 @@
+---
+
+############################
+# SPOTIFY SETUP
+############################
+
+- name: Download Spotify apt key file
+  get_url: url=http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x931FF8E79F0876134EDDBDCCA87FF9DF48BF1C90 dest=/tmp/spotify_key
+  when: is_vm.rc == 0
+  tags: spotify
+
+- name: Add Spotify key to keyring
+  apt_key:
+    id: 931FF8E79F0876134EDDBDCCA87FF9DF48BF1C90
+    file: /tmp/spotify_key
+    state: present
+  when: is_vm.rc == 0
+  tags: spotify
+
+- name: Remove the Spotify key file
+  file: path=/tmp/spotify_key state=absent
+  when: is_vm.rc == 0
+  tags: spotify
+
+- name: Add Spotify repo (apt)
+  apt_repository:
+    repo: deb http://repository.spotify.com stable non-free
+    state: present
+    filename: spotify.list
+  when: is_vm.rc == 0
+  tags: spotify
+
+- name: install Spotify (apt)
+  become: yes
+  apt:
+    name: "spotify-client"
+    state: present
+  when: is_vm.rc == 0
+  tags: spotify
+
+############################
+# VS CODE SETUP
+############################
+- name: install dependencies (apt)
+  become: yes
+  apt:
+    name:
+      - ca-certificates
+      - apt-transport-https
+      - gconf2
+      - libasound2
+      - libgtk2.0-0
+      - libxss1
+    state: present
+
+- name: install VS Code key (apt)
+  become: yes
+  apt_key:
+    url: 'https://packages.microsoft.com/keys/microsoft.asc'
+    state: present
+
+- name: install VS Code repo (apt)
+  become: yes
+  apt_repository:
+    repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
+    filename: vscode
+    state: present
+
+- name: install VS Code (apt)
+  become: yes
+  apt:
+    name: "code"
+    state: present
+
+############################
+# GITKRAKEN SETUP
+############################
+
+- name: install GitKraken (apt)
+  apt:
+    deb: https://release.gitkraken.com/linux/gitkraken-amd64.deb
+  tags: gitkraken
+
+############################
+# BASH-COMPLETION SETUP
+############################
+# Source: https://github.com/scop/bash-completion
+
+- name: install bash-completion (apt)
+  become: yes
+  apt:
+    name: "bash-completion"
+    state: present
+
+- name: "Configure /etc/bash.bashrc for bash-completion"
+  blockinfile:
+    path: /etc/bash.bashrc
+    backup: yes
+    block: |
+      [[ $PS1 && -f /usr/share/bash-completion/bash_completion ]] && \
+          . /usr/share/bash-completion/bash_completion
+
+############################
+# PUTTY SETUP
+############################
+
+- name: install putty (apt)
+  become: yes
+  apt:
+    name: "putty"
+    state: present
+
+- name: copy session config files into ~/.putty/sessions/
+  copy:
+    src: "{{ item }}"
+    dest: /home/{{ setup_user }}/.putty/sessions/
+    owner: "{{ setup_user }}"
+    group: "{{ setup_user_group }}"
+    mode: 0777
+  with_fileglob:
+    - "{{ role_path }}/files/.putty/sessions/*"
+
+############################
+# REDSHIFT SETUP
+############################
+
+- name: Download redshift apt key file
+  get_url: url=https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x55242BB8AD555F67 dest=/tmp/redshift
+  when: is_vm.rc == 0
+  tags: redshift
+
+- name: Add redshift key to keyring
+  apt_key:
+    id: 55242BB8AD555F67
+    file: /tmp/redshift
+    state: present
+  when: is_vm.rc == 0
+  tags: redshift
+
+- name: Add redshift repo (apt)
+  apt_repository:
+    repo: deb http://ppa.launchpad.net/dobey/redshift-daily/ubuntu bionic main
+    state: present
+    filename: redshift.list
+  when: is_vm.rc == 0
+  tags: redshift
+
+- name: install redshift-gtk (apt)
+  become: yes
+  apt:
+    name: "redshift-gtk"
+    state: present
+  when: is_vm.rc == 0
+  tags: redshift
+
+- name: Create redshift directory if it doesn't exist
+  file:
+    path: /home/{{ setup_user }}/.config/redshift
+    state: directory
+    mode: 0777
+    owner: "{{ setup_user }}"
+    group: "{{ setup_user_group }}"
+  tags: redshift
+
+- name: copy redshift.conf file (Singapore) into ~/.config/redshift/
+  copy:
+    src: redshift.conf
+    dest: /home/{{ setup_user }}/.config/redshift/redshift.conf
+    owner: "{{ setup_user }}"
+    group: "{{ setup_user_group }}"
+    mode: 0777
+    force: no
+  when: is_vm.rc == 0
+  tags: redshift
+
+############################
+# FIREFOX SETUP
+############################
+
+- name: install Firefox (apt)
+  become: yes
+  apt:
+    name: "firefox"
+    state: present
+
+- name: Find firefox pref file names (like 3csnktox.default)
+  find:
+    patterns: "*.default"
+    paths: "/home/{{ setup_user }}/.mozilla/firefox/"
+    file_type: directory
+  register: firefox_pref_files
+
+# Source for information: http://kb.mozillazine.org/User.js_file and https://github.com/pyllyukko/user.js/
+- name: Configure Firefox ~/.mozilla/firefox/*.default/user.js file
+  lineinfile:
+    path: "{{ config_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    create: yes
+  with_items:
+    - { regexp: '^user_pref\("browser.tabs.warnOnClose", (.*)\)', line: 'user_pref("browser.tabs.warnOnClose", false);' } # disable annoying warning when closing
+    - { regexp: '^user_pref\("browser.startup.page", (.*)\)', line: 'user_pref("browser.startup.page", 3);' } # enable restoring of previous session (see https://wiki.mozilla.org/Session_Restore)
+    - { regexp: '^user_pref\("extensions.activeThemeID", (.*)\)', line: 'user_pref("extensions.activeThemeID", "firefox-compact-dark@mozilla.org");' } # enable dark theme
+  vars:
+    #- config_file: "/etc/firefox/syspref.js" # for global configuration
+    - config_file: "{{ firefox_pref_files.files.0.path }}/user.js"
+
+
+############################
+# OTHERS
+############################
+
+- name: Install common packages (all)
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - git
+    - python-apt
+    - python3-pip
+    - pylint
+    - terminator
+    - shellcheck
+    - shutter
+    - curl
+
+- name: Install common packages (native only)
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - virtualbox
+  when: is_vm.rc == 0
+
+- name: Update all packages to the latest version
+  apt:
+    upgrade: dist

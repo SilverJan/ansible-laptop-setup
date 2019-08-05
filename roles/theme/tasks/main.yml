@@ -1,0 +1,60 @@
+---
+
+# FYI: Only works in bionic - See playbook.yml
+
+- name: install gnome-tweak-tool (apt)
+  become: yes
+  apt:
+    name: "gnome-tweak-tool"
+    state: present
+
+############################
+# ADAPTA SETUP
+# See: https://github.com/adapta-project/adapta-gtk-theme
+############################
+
+- name: Download adapta apt key file
+  get_url: url=https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xEAC0D406E5D79A82ADEEDFDFB76E53652D87398A dest=/tmp/adapta
+  tags: adapta
+
+- name: Add adapta key to keyring
+  apt_key:
+    id: EAC0D406E5D79A82ADEEDFDFB76E53652D87398A
+    file: /tmp/adapta
+    state: present
+  tags: adapta
+
+- name: Add adapta repo (apt)
+  apt_repository:
+    repo: deb http://ppa.launchpad.net/tista/adapta/ubuntu bionic main 
+    state: present
+    filename: adapta.list
+  tags: adapta
+
+- name: install adapta-gtk-theme (apt)
+  become: yes
+  apt:
+    name: "adapta-gtk-theme"
+    state: present
+  tags: adapta
+
+- name: Set gtk-theme to Adapta-Eta
+  gsetting:
+    user: "{{ setup_user }}"
+    key: org.gnome.desktop.interface.gtk-theme
+    value: "Adapta-Eta"
+  tags: adapta
+
+- name: Set icon-theme to breeze-dark
+  gsetting:
+    user: "{{ setup_user }}"
+    key: org.gnome.desktop.interface.icon-theme
+    value: "breeze-dark"
+  tags: adapta
+
+- name: Set cursor-theme to DMZ-Black
+  gsetting:
+    user: "{{ setup_user }}"
+    key: org.gnome.desktop.interface.cursor-theme
+    value: "DMZ-Black"
+  tags: adapta

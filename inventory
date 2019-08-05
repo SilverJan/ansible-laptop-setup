@@ -1,0 +1,8 @@
+[local]
+127.0.0.1
+
+[local:vars]
+ansible_connection=local
+
+[remote]
+#10.188.89.95 ansible_ssh_user="{{ ssh_user }}"

@@ -1,0 +1,19 @@
+# if vm, is_vm.rc will be 1, else 0
+# use as: 'when: is_vm.rc == 0'
+- name: check if device is VM/native
+  shell: dpkg-query -W -f='${Status}' virtualbox-guest-dkms | grep -v 'install ok installed'
+  failed_when: no
+  changed_when: no
+  register: is_vm
+
+- name: define group name (for !VMs)
+  set_fact:
+    setup_user_group: "{{ setup_user }}"
+    cacheable: yes
+  when: is_vm.rc == 0
+
+- name: define group name (for VMs)
+  set_fact:
+    setup_user_group: "{{ setup_user }}"
+    cacheable: yes
+  when: is_vm.rc == 1
