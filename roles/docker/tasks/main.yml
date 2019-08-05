@@ -5,9 +5,6 @@
     apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
       state: present
-    environment:
-      http_proxy: http://127.0.0.1:3128
-      https_proxy: http://127.0.0.1:3128
 
   - name: "Add Docker repository"
     apt_repository:
